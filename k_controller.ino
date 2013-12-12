@@ -20,14 +20,16 @@
 #define TRIG_SHT 7
 #define TRIG_FOC 6
 
-#define IN_PIN1 0
-#define IN_PIN2 1
+#define IN_PIN1 0 // Ring
+#define IN_PIN2 1 //Tip
 
 #define INTERVAL_POT A1
 #define INTERVAL_SW 3
 
 #define SPEED_POT A0
 #define SPEED_SW 2
+
+
 
 // VARIABLES
 
@@ -60,6 +62,9 @@ void setup() {
   pinMode(TRIG_FOC, OUTPUT);
   pinMode(INTERVAL_SW, INPUT);
   pinMode(SPEED_SW, INPUT);
+  pinMode(IN_PIN2, INPUT);
+  
+  
 
   digitalWrite(POWER_LED, LOW);
   digitalWrite(TRIGGER_LED, LOW);
@@ -68,12 +73,23 @@ void setup() {
   digitalWrite(TRIG_SHT, LOW);
   digitalWrite(TRIG_FOC, LOW);
   digitalWrite(INTERVAL_SW, HIGH); //Pullup
+  digitalWrite(SPEED_SW, HIGH); //Pullup
   digitalWrite(TRIG_FOC, HIGH); // Pullup
+  digitalWrite(IN_PIN2, HIGH); // Pullup
+
 
   time = millis();
   previousTime = millis();
 
-
+// Set the following pins to a known state because it won't work without
+ pinMode(13, OUTPUT);
+ digitalWrite(13, LOW); 
+ pinMode(11, OUTPUT);
+ digitalWrite(11, LOW); 
+ pinMode(12, OUTPUT);
+ digitalWrite(12, LOW); 
+ 
+ 
 }
 
 void loop() 
@@ -97,6 +113,12 @@ void loop()
   //if continous is true, we move the motor for setup or while exposing
   if (continous == true)
     moveMotor();
+    
+  if(digitalRead(IN_PIN2) == LOW)
+  {
+  moveMotorSMS();
+  fireCamera();
+  }
 
 
 }
@@ -126,6 +148,8 @@ void fireCamera()
 void moveMotorSMS()
 //moves the motor in SMS mode
 
+
+
 {
   
   // the speed value here is actually a delay 
@@ -148,7 +172,7 @@ void moveMotorSMS()
     digitalWrite(DIR_PIN ,LOW);
     digitalWrite(SPEED_PIN,HIGH);
     // divide the sensor value by 16 to get slower SMS speed
-    delay((505 - newSpeedValue)/16);
+    delay((505 - newSpeedValue)/8);
     digitalWrite(SPEED_PIN,LOW);
     digitalWrite(DIR_PIN ,LOW);
 
@@ -159,7 +183,7 @@ void moveMotorSMS()
     digitalWrite(DIR_PIN,HIGH);
     digitalWrite(SPEED_PIN,LOW);
      // divide the sensor value by 16 to get slower SMS speed
-    delay((newSpeedValue - 515)/16);
+    delay((newSpeedValue - 515)/8);
     digitalWrite(SPEED_PIN,LOW);
     digitalWrite(DIR_PIN ,LOW);
   }
@@ -169,7 +193,8 @@ void moveMotorSMS()
 void moveMotor()
 //moves the motor in continous mode and for setup
 { 
-
+ if(continous == true)
+ {
 
   newSpeedValue = analogRead(SPEED_POT);
 
@@ -193,6 +218,7 @@ void moveMotor()
 
     analogWrite(SPEED_PIN,(525-(newSpeedValue/2))/2);
   }
+ }
 }
 
 
@@ -225,8 +251,8 @@ void checkContinous()
     delay(250);
   if(digitalRead(SPEED_SW) == LOW)
   //if button is still pressed, switch continous state
-    continous = ! continous; 
-     delay(250);
+    continous = !continous; 
+    // delay(250);
 
 }
 
